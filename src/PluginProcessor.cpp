@@ -23,6 +23,11 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 //==============================================================================
 const juce::String AudioPluginAudioProcessor::getName() const
 {
+    // This should be set but as a failsafe
+    #ifndef JucePlugin_Name
+        #define JucePlugin_Name "Juce Plugin"
+    #endif
+    
     return JucePlugin_Name;
 }
 
