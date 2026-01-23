@@ -157,8 +157,22 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         auto* channelData = buffer.getWritePointer (channel);
         juce::ignoreUnused (channelData);
 
-        for (auto i = 0; i < buffer.getNumSamples(); ++i) {
-            channelData[i] = (juce::Random::getSystemRandom().nextFloat() - 0.5) * 2.0;
+        for (auto data : midiMessages) {
+            juce::MidiMessage message = data.getMessage();
+            
+            if (message.isNoteOn()) {
+                playing_messages[message.getNoteNumber()] = message;
+            }else if (message.isNoteOff()) {
+                playing_messages.erase(message.getNoteNumber());
+            }
+        }
+
+        int active_notes = playing_messages.size();
+
+        for (auto message : playing_messages) {
+            for (auto i = 0; i < buffer.getNumSamples(); ++i) {
+                channelData[i] += (juce::Random::getSystemRandom().nextFloat() - 0.5) * ((float)message.first / 20.0);
+            }
         }
     }
 }
