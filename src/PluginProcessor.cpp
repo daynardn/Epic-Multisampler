@@ -96,6 +96,7 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::ignoreUnused (sampleRate, samplesPerBlock);
+    current_sample_rate = sampleRate;
 }
 
 void AudioPluginAudioProcessor::releaseResources()
@@ -146,14 +147,22 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    juce::AudioPlayHead * playhead = getPlayHead();
+
+    juce::AudioPlayHead::PositionInfo time_info = playhead->getPosition().orFallback(juce::AudioPlayHead::PositionInfo());
+    
+    double angle_delta = (440.0 / current_sample_rate) * 2.0 * juce::MathConstants<double>::pi;
+
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
+    double wav_phase = phase;
     for (int channel = 0; channel < totalNumOutputChannels; ++channel)
     {
+        phase = wav_phase;
         auto* channelData = buffer.getWritePointer (channel);
         juce::ignoreUnused (channelData);
 
@@ -162,6 +171,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             
             if (message.isNoteOn()) {
                 playing_messages[message.getNoteNumber()] = message;
+                // phases[message.getNoteNumber()] = 0.0;
             }else if (message.isNoteOff()) {
                 playing_messages.erase(message.getNoteNumber());
             }
@@ -169,11 +179,14 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
         int active_notes = playing_messages.size();
 
-        for (auto message : playing_messages) {
+        // for (auto message : playing_messages) {
             for (auto i = 0; i < buffer.getNumSamples(); ++i) {
-                channelData[i] += (juce::Random::getSystemRandom().nextFloat() - 0.5) * ((float)message.first / 20.0);
+                channelData[i] += std::sin(
+                    phase
+                );
+                phase += (angle_delta);
             }
-        }
+        // }
     }
 }
 
