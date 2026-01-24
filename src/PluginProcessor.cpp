@@ -159,34 +159,32 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    double wav_phase = phase;
-    for (int channel = 0; channel < totalNumOutputChannels; ++channel)
-    {
-        phase = wav_phase;
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
+    auto* channelLeftData = buffer.getWritePointer (0);
+    auto* channelRightData = buffer.getWritePointer (1);
 
-        for (auto data : midiMessages) {
-            juce::MidiMessage message = data.getMessage();
-            
-            if (message.isNoteOn()) {
-                playing_messages[message.getNoteNumber()] = message;
-                // phases[message.getNoteNumber()] = 0.0;
-            }else if (message.isNoteOff()) {
-                playing_messages.erase(message.getNoteNumber());
-            }
+    for (auto data : midiMessages) {
+        juce::MidiMessage message = data.getMessage();
+        
+        if (message.isNoteOn()) {
+            playing_messages[message.getNoteNumber()] = message;
+            phases[message.getNoteNumber()] = 0.0;
+        }else if (message.isNoteOff()) {
+            playing_messages.erase(message.getNoteNumber());
         }
+    }
 
-        int active_notes = playing_messages.size();
+    size_t active_notes = playing_messages.size();
 
-        // for (auto message : playing_messages) {
-            for (auto i = 0; i < buffer.getNumSamples(); ++i) {
-                channelData[i] += std::sin(
-                    phase
-                );
-                phase += (angle_delta);
-            }
-        // }
+    for (auto message : playing_messages) {
+        for (auto i = 0; i < buffer.getNumSamples(); ++i) {
+            channelLeftData[i] += std::sinf(
+                (float)phases[message.first]
+            );
+            channelRightData[i] += std::sinf(
+                (float)phases[message.first]
+            );
+            phases[message.first] += (angle_delta * pow(2.0, (message.first - 69)/12.0));
+        }
     }
 }
 

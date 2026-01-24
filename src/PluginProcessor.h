@@ -52,5 +52,4 @@ private:
     std::unordered_map<int, juce::MidiMessage> playing_messages;
     double current_sample_rate;
     std::unordered_map<int, double> phases;
-    double phase;
 };
