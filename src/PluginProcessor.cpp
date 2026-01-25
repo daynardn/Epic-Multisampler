@@ -164,8 +164,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto* waveTablePtr = waveTable.getWritePointer (0);
     
     
-    const unsigned int tableSize = 1 << 8;
-    waveTable.setSize(1, (int) tableSize);
+    waveTable.setSize(1, buffer.getNumSamples());
 
     for (auto data : midiMessages) {
         juce::MidiMessage message = data.getMessage();

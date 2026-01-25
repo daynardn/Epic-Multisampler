@@ -30,18 +30,24 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
     const float *wavetable = processorRef.requestWavetable();
 
     size_t samples = processorRef.requestWavetableLen();
-    int lineLength = getLocalBounds().getWidth() / (samples);
+    float lineLength = getLocalBounds().getWidth() / (float)(samples);
     int height = getLocalBounds().getHeight();
     
     if (samples > 1) {
+        juce::Path path = juce::Path();
         for (size_t i = 0; i < samples - 2; i++) {
             g.setColour(juce::Colour::fromRGB(4, 3, 255));
-            g.drawLine(lineLength * i, 
-                ((wavetable[i] + 1.0) / 2.0) * height, 
-                lineLength * (i+1), 
-                ((wavetable[i+1] + 1.0) / 2.0) * height
-            );
+            path.addLineSegment(
+                juce::Line<float>(
+                    lineLength * i, 
+                    ((wavetable[i] + 1.0) / 2.0) * height, 
+                    lineLength * (i+1), 
+                    ((wavetable[i+1] + 1.0) / 2.0) * height
+                ), 1);
         }
+        path.scaleToFit(0, 0, getLocalBounds().getWidth(), getLocalBounds().getHeight(), false);
+
+        g.strokePath(path, juce::PathStrokeType(1));
     }
 }
 
