@@ -161,6 +161,11 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // interleaved by keeping the same state.
     auto* channelLeftData = buffer.getWritePointer (0);
     auto* channelRightData = buffer.getWritePointer (1);
+    auto* waveTablePtr = waveTable.getWritePointer (0);
+    
+    
+    const unsigned int tableSize = 1 << 8;
+    waveTable.setSize(1, (int) tableSize);
 
     for (auto data : midiMessages) {
         juce::MidiMessage message = data.getMessage();
@@ -168,6 +173,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         if (message.isNoteOn()) {
             playing_messages[message.getNoteNumber()] = message;
             phases[message.getNoteNumber()] = 0.0;
+            waveTable.clear();
         }else if (message.isNoteOff()) {
             playing_messages.erase(message.getNoteNumber());
         }
@@ -176,16 +182,26 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     size_t active_notes = playing_messages.size();
 
     for (auto message : playing_messages) {
-        for (auto i = 0; i < buffer.getNumSamples(); ++i) {
+        for (auto i = 0; i < waveTable.getNumSamples(); ++i) {
             channelLeftData[i] += std::sinf(
                 (float)phases[message.first]
             );
             channelRightData[i] += std::sinf(
                 (float)phases[message.first]
             );
+            waveTablePtr[i] += std::sinf(
+                (float)phases[message.first]
+            );
             phases[message.first] += (angle_delta * pow(2.0, (message.first - 69)/12.0));
         }
     }
+}
+
+const float *AudioPluginAudioProcessor::requestWavetable() {
+    return waveTable.getReadPointer(0);
+}
+int AudioPluginAudioProcessor::requestWavetableLen() {
+    return waveTable.getNumSamples();
 }
 
 //==============================================================================
