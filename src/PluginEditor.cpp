@@ -15,6 +15,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
+    
 }
 
 //==============================================================================
@@ -27,11 +28,29 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
     g.setFont (15.0f);
     g.drawFittedText ("HelloW orld", getLocalBounds(), juce::Justification::centred, 1);
 
+    double wavetableWidth = getLocalBounds().getWidth() * .8;
+
+    juce::FlexBox *uiBox = new juce::FlexBox(juce::FlexBox::JustifyContent::center);
+    juce::FlexItem pianoSampler = juce::FlexItem(getLocalBounds().getWidth() * .2, 300);
+    juce::FlexItem waveTable = juce::FlexItem(wavetableWidth, 100);
+
+    uiBox->items.add(pianoSampler);
+    uiBox->items.add(waveTable);
+    uiBox->performLayout(
+        getLocalBounds()
+    );
+
+    pianoSampler = uiBox->items[0];
+    waveTable = uiBox->items[1];
+
+    g.setColour(juce::Colours::antiquewhite);
+    g.fillRect(pianoSampler.currentBounds);
+
     const float *wavetable = processorRef.requestWavetable();
 
     size_t samples = processorRef.requestWavetableLen();
-    float lineLength = getLocalBounds().getWidth() / (float)(samples);
-    int height = getLocalBounds().getHeight();
+    float lineLength = waveTable.currentBounds.getWidth() / (float)(samples);
+    float height = waveTable.currentBounds.getHeight();
     
     if (samples > 1) {
         juce::Path path = juce::Path();
@@ -40,15 +59,22 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
             path.addLineSegment(
                 juce::Line<float>(
                     lineLength * i, 
-                    ((wavetable[i] + 1.0) / 2.0) * height, 
+                    (((float)wavetable[i] + 1.0) / 2.0) * height, 
                     lineLength * (i+1), 
-                    ((wavetable[i+1] + 1.0) / 2.0) * height
+                    (((float)wavetable[i+1] + 1.0) / 2.0) * height
                 ), 1);
         }
-        path.scaleToFit(0, 0, getLocalBounds().getWidth(), getLocalBounds().getHeight(), false);
+        path.scaleToFit(
+            waveTable.currentBounds.getPosition().getX(), 
+            waveTable.currentBounds.getPosition().getY(), 
+            waveTable.currentBounds.getWidth(),
+            waveTable.currentBounds.getHeight(), 
+        false);
 
         g.strokePath(path, juce::PathStrokeType(1));
     }
+
+    delete(uiBox);
 }
 
 void AudioPluginAudioProcessorEditor::resized()
