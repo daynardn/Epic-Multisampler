@@ -11,6 +11,31 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
+
+    myChooser = std::make_unique<juce::FileChooser> ("Please select the moose you want to load...",
+                                               juce::File::getSpecialLocation (juce::File::userHomeDirectory),
+                                               "*.wav");
+ 
+    auto folderChooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+
+    // loadNewSampleButton.setTopRightPosition(100, 100);
+    // loadNewSampleButton.setSize(100, 100);
+ 
+    addAndMakeVisible (loadNewSampleButton);
+
+    loadNewSampleButton.onClick = [this, folderChooserFlags]
+    {
+        myChooser->launchAsync (folderChooserFlags, [this] (const juce::FileChooser& chooser)
+        {
+            juce::File mooseFile (chooser.getResult());
+    
+        juce::AlertWindow::showMessageBoxAsync(
+                        juce::AlertWindow::InfoIcon,
+                        "Selected File!",
+                        "Ok"
+                    );
+        });
+    };
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -74,11 +99,18 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
         g.strokePath(path, juce::PathStrokeType(1));
     }
 
+
     delete(uiBox);
+}
+
+void click() {
+
 }
 
 void AudioPluginAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+    auto bounds = getLocalBounds();
+    loadNewSampleButton.setBounds(bounds.removeFromRight(100));
 }
