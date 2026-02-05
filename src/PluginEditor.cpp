@@ -12,7 +12,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // editor's size to whatever you need it to be.
     setSize (400, 300);
 
-    myChooser = std::make_unique<juce::FileChooser> ("Please select the moose you want to load...",
+    sampleSelector = std::make_unique<juce::FileChooser> ("Please select the file you want to load...",
                                                juce::File::getSpecialLocation (juce::File::userHomeDirectory),
                                                "*.wav");
  
@@ -25,15 +25,19 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
 
     loadNewSampleButton.onClick = [this, folderChooserFlags]
     {
-        myChooser->launchAsync (folderChooserFlags, [this] (const juce::FileChooser& chooser)
+        sampleSelector->launchAsync (folderChooserFlags, [this] (const juce::FileChooser& chooser)
         {
-            juce::File mooseFile (chooser.getResult());
+            juce::File sample (chooser.getResult());
     
-        juce::AlertWindow::showMessageBoxAsync(
-                        juce::AlertWindow::InfoIcon,
-                        "Selected File!",
-                        "Ok"
-                    );
+            juce::AlertWindow::showMessageBoxAsync(
+                            juce::AlertWindow::InfoIcon,
+                            "Selected File!",
+                            "Ok"
+                        );
+
+            processorRef.addSample(sample);
+
+            
         });
     };
 }
@@ -77,34 +81,30 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
     float lineLength = waveTable.currentBounds.getWidth() / (float)(samples);
     float height = waveTable.currentBounds.getHeight();
     
-    if (samples > 1) {
-        juce::Path path = juce::Path();
-        for (size_t i = 0; i < samples - 2; i++) {
-            g.setColour(juce::Colour::fromRGB(4, 3, 255));
-            path.addLineSegment(
-                juce::Line<float>(
-                    lineLength * i, 
-                    (((float)wavetable[i] + 1.0) / 2.0) * height, 
-                    lineLength * (i+1), 
-                    (((float)wavetable[i+1] + 1.0) / 2.0) * height
-                ), 1);
-        }
-        path.scaleToFit(
-            waveTable.currentBounds.getPosition().getX(), 
-            waveTable.currentBounds.getPosition().getY(), 
-            waveTable.currentBounds.getWidth(),
-            waveTable.currentBounds.getHeight(), 
-        false);
+    // if (samples > 1) {
+    //     juce::Path path = juce::Path();
+    //     for (size_t i = 0; i < samples - 2; i++) {
+    //         g.setColour(juce::Colour::fromRGB(4, 3, 255));
+    //         path.addLineSegment(
+    //             juce::Line<float>(
+    //                 lineLength * i, 
+    //                 (((float)wavetable[i] + 1.0) / 2.0) * height, 
+    //                 lineLength * (i+1), 
+    //                 (((float)wavetable[i+1] + 1.0) / 2.0) * height
+    //             ), 1);
+    //     }
+    //     path.scaleToFit(
+    //         waveTable.currentBounds.getPosition().getX(), 
+    //         waveTable.currentBounds.getPosition().getY(), 
+    //         waveTable.currentBounds.getWidth(),
+    //         waveTable.currentBounds.getHeight(), 
+    //     false);
 
-        g.strokePath(path, juce::PathStrokeType(1));
-    }
+    //     g.strokePath(path, juce::PathStrokeType(1));
+    // }
 
 
     delete(uiBox);
-}
-
-void click() {
-
 }
 
 void AudioPluginAudioProcessorEditor::resized()

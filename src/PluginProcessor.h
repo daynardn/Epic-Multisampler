@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_formats/juce_audio_formats.h>
 
 // Based on JUCE template project
 
@@ -46,6 +47,8 @@ public:
 
     const float *requestWavetable();
     int requestWavetableLen();
+
+    void addSample(juce::File sample); 
    
 private:
     //==============================================================================
@@ -56,4 +59,5 @@ private:
     double current_sample_rate;
     std::unordered_map<int, double> phases;
     juce::AudioSampleBuffer waveTable;
+    double sample_rate;
 };
