@@ -45,10 +45,10 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    const float *requestWavetable();
-    int requestWavetableLen();
+    const float *requestWavetable(int index);
+    int requestWavetableLen(int index);
 
-    void addSample(juce::File sample); 
+    void addSample(juce::File sample, int index); 
    
 private:
     //==============================================================================
@@ -58,6 +58,6 @@ private:
     std::unordered_map<int, juce::MidiMessage> playing_messages;
     double current_sample_rate;
     std::unordered_map<int, double> phases;
-    juce::AudioSampleBuffer waveTable;
+    std::unordered_map<int, juce::AudioSampleBuffer> note_wavetables;
     double sample_rate;
 };

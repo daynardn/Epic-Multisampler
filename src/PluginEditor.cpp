@@ -21,9 +21,9 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // loadNewSampleButton.setTopRightPosition(100, 100);
     // loadNewSampleButton.setSize(100, 100);
  
-    addAndMakeVisible (loadNewSampleButton);
+    addAndMakeVisible (loadNewSampleButtonE4);
 
-    loadNewSampleButton.onClick = [this, folderChooserFlags]
+    loadNewSampleButtonE4.onClick = [this, folderChooserFlags]
     {
         sampleSelector->launchAsync (folderChooserFlags, [this] (const juce::FileChooser& chooser)
         {
@@ -31,11 +31,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     
             juce::AlertWindow::showMessageBoxAsync(
                             juce::AlertWindow::InfoIcon,
-                            "Selected File!",
+                            "Selected E4 File!",
                             "Ok"
                         );
 
-            processorRef.addSample(sample);
+            processorRef.addSample(sample, 64);
 
             
         });
@@ -75,11 +75,11 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(juce::Colours::antiquewhite);
     g.fillRect(pianoSampler.currentBounds);
 
-    const float *wavetable = processorRef.requestWavetable();
+    // const float *wavetable = processorRef.requestWavetable();
 
-    size_t samples = processorRef.requestWavetableLen();
-    float lineLength = waveTable.currentBounds.getWidth() / (float)(samples);
-    float height = waveTable.currentBounds.getHeight();
+    // size_t samples = processorRef.requestWavetableLen();
+    // float lineLength = waveTable.currentBounds.getWidth() / (float)(samples);
+    // float height = waveTable.currentBounds.getHeight();
     
     // if (samples > 1) {
     //     juce::Path path = juce::Path();
@@ -112,5 +112,5 @@ void AudioPluginAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
-    loadNewSampleButton.setBounds(bounds.removeFromRight(100));
+    loadNewSampleButtonE4.setBounds(bounds.removeFromRight(100));
 }

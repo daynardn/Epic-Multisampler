@@ -20,7 +20,8 @@ private:
     // access the processor object that created it.
     AudioPluginAudioProcessor& processorRef;
     std::unique_ptr<juce::FileChooser> sampleSelector;
-    juce::TextButton loadNewSampleButton { "Load New Sample" };
+    juce::TextButton loadNewSampleButtonE4 { "Load New Sample E4" };
+    juce::TextButton loadNewSampleButtonF4 { "Load New Sample F4" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
 };

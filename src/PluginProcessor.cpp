@@ -159,13 +159,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    auto* channelLeftData = buffer.getWritePointer (0);
-    auto* channelRightData = buffer.getWritePointer (1);
-    auto* waveTablePtr = waveTable.getReadPointer (0);
     
-    
-    // waveTable.setSize(1, buffer.getNumSamples());
-
     for (auto data : midiMessages) {
         juce::MidiMessage message = data.getMessage();
         
@@ -178,38 +172,49 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         }
     }
 
+    auto* channelLeftData = buffer.getWritePointer (0);
+    auto* channelRightData = buffer.getWritePointer (1);
+    std::unordered_map<int, const float *> waveTablePtrs;
+    for (auto message : playing_messages) {
+        if (note_wavetables.count(message.first) == 0) {
+            continue;
+        }
+        waveTablePtrs[message.first] = note_wavetables[message.first].getReadPointer(0);
+    }
+
     size_t active_notes = playing_messages.size();
 
     for (auto message : playing_messages) {
+        if (note_wavetables.count(message.first) == 0) {
+            continue;
+        }
         for (auto i = 0; i < buffer.getNumSamples(); ++i) {
             double spline = 
-                waveTablePtr[int(ceil(phases[message.first]))] - 
-                waveTablePtr[int(floor(phases[message.first]))];
+                waveTablePtrs[message.first][int(ceil(phases[message.first]))] - 
+                waveTablePtrs[message.first][int(floor(phases[message.first]))];
 
             double intpart;
             spline *= modf(phases[message.first], &intpart);
-            spline += waveTablePtr[int(floor(phases[message.first]))];
+            spline += waveTablePtrs[message.first][int(floor(phases[message.first]))];
 
             channelLeftData[i] +=
-                (float)waveTablePtr[int(phases[message.first])];
+                spline;
             channelRightData[i] +=
-                (float)waveTablePtr[int(phases[message.first])];
-            // waveTablePtr[i] += std::sinf(
-            //     (float)phases[message.first]
-            // );
+                spline;
+
             phases[message.first] += 1 * (sample_rate / current_sample_rate);
-            if (phases[message.first] > waveTable.getNumSamples()) {
-                phases[message.first] -= waveTable.getNumSamples();
+            if (phases[message.first] > note_wavetables[message.first].getNumSamples()) {
+                phases[message.first] -= note_wavetables[message.first].getNumSamples();
             }
         }
     }
 }
 
-const float *AudioPluginAudioProcessor::requestWavetable() {
-    return waveTable.getReadPointer(0);
+const float *AudioPluginAudioProcessor::requestWavetable(int index) {
+    return note_wavetables[index].getReadPointer(0);
 }
-int AudioPluginAudioProcessor::requestWavetableLen() {
-    return waveTable.getNumSamples();
+int AudioPluginAudioProcessor::requestWavetableLen(int index) {
+    return note_wavetables[index].getNumSamples();
 }
 
 //==============================================================================
@@ -223,7 +228,7 @@ juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
     return new AudioPluginAudioProcessorEditor (*this);
 }
 
-void AudioPluginAudioProcessor::addSample(juce::File sample) {
+void AudioPluginAudioProcessor::addSample(juce::File sample, int index) {
     juce::AudioFormatManager formatManager;
     formatManager.registerBasicFormats();
 
@@ -234,7 +239,7 @@ void AudioPluginAudioProcessor::addSample(juce::File sample) {
     sample_rate = reader->sampleRate;
     delete reader;
 
-    waveTable = audioBuffer;
+    note_wavetables[index] = audioBuffer;
 }
 
 //==============================================================================
