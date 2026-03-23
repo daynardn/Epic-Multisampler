@@ -19,9 +19,65 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     auto folderChooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
 
     // loadNewSampleButton.setTopRightPosition(100, 100);
-    // loadNewSampleButton.setSize(100, 100);
+    // loadNewSampleButton.setSize(100, 100 );
+    noteInput.addItem (1, "A");
+    noteInput.addItem (2, "Bb");
+    noteInput.addItem (3, "B");
+    noteInput.addItem (4, "C");
+    noteInput.addItem (5, "Db");
+    noteInput.addItem (6, "D");
+    noteInput.addItem (7, "Eb");
+    noteInput.addItem (8, "E");
+    noteInput.addItem (9, "F");
+    noteInput.addItem (10, "Gb");
+    noteInput.addItem (11, "G");
+    noteInput.addItem (12, "Ab");
+
+    octaveInput.addItem (1, "0"); // 0 is no inpit
+    octaveInput.addItem (2, "1");
+    octaveInput.addItem (3, "2");
+    octaveInput.addItem (4, "3");
+    octaveInput.addItem (5, "4");
+    octaveInput.addItem (6, "5");
+    octaveInput.addItem (7, "6");
+    octaveInput.addItem (8, "7");
+    octaveInput.addItem (9, "8");
+    octaveInput.addItem (10, "9");
  
     addAndMakeVisible (loadNewSampleButtonE4);
+    addAndMakeVisible (sampleLabel);
+    addAndMakeVisible (noteSetterButton);
+    addAndMakeVisible (octaveSetterButton);
+
+    noteSetterButton.onClick = [this] {
+        noteInput.showMenuAsync(juce::PopupMenu::Options(),
+                         [this] (int result)
+                         {
+                             if (result == 0)
+                             {
+                                 //no input, don't update
+                             }
+                             else {
+                                this->selectedPitch = result;
+                             }
+                         });
+    };
+
+
+    octaveSetterButton.onClick = [this] {
+        octaveInput.showMenuAsync(juce::PopupMenu::Options(),
+                         [this] (int result)
+                         {
+                             if (result == 0)
+                             {
+                                 //no input, don't update
+                             }
+                             else {
+                                this->selectedOctave = result; // 1 is C0 since 12*1 = 12 = C0
+                             }
+                         });
+    };
+
 
     loadNewSampleButtonE4.onClick = [this, folderChooserFlags]
     {
@@ -31,11 +87,15 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     
             juce::AlertWindow::showMessageBoxAsync(
                             juce::AlertWindow::InfoIcon,
-                            "Selected E4 File!",
+                            "",
                             "Ok"
                         );
-
-            processorRef.addSample(sample, 64);
+            
+            // juce::String note = sampleLabel.getText().substring(0,1);
+            // // C0 is 12 so add #*12 for each  
+            // int note = 12 + 12 * sampleLabel.getText().substring(0,1)
+            // this->selectedPitch -4 since A -> Bb -> B -> C
+            processorRef.addSample(sample, (this->selectedPitch - 4) +(this->selectedOctave*12));
 
             
         });
@@ -112,5 +172,11 @@ void AudioPluginAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
-    loadNewSampleButtonE4.setBounds(bounds.removeFromRight(100));
+    loadNewSampleButtonE4.setBounds(bounds.removeFromRight(100).removeFromTop(100));
+    noteSetterButton.setBounds(bounds.removeFromRight(100).removeFromTop(100));
+    octaveSetterButton.setBounds(
+        bounds.removeFromRight(100).removeFromRight(100)
+        .removeFromTop(100).removeFromTop(100));
+
+    sampleLabel.setBounds(bounds.removeFromRight(100).removeFromRight(100));
 }
