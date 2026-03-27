@@ -1,3 +1,4 @@
+#include "WaveTable.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -14,6 +15,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                      #endif
                        )
 {
+    wavetableHandler = new WaveTableManager();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -164,10 +166,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto* channelRightData = buffer.getWritePointer (1);
     std::unordered_map<int, const float *> waveTablePtrs;
     for (auto message : playing_messages) {
-        if (note_wavetables.count(message.first) == 0) {
-            continue;
-        }
-        waveTablePtrs[message.first] = note_wavetables[message.first].getReadPointer(0);
+        waveTablePtrs[message.first] = wavetableHandler->generate_wavetables(note_wavetables, message.first);
     }
 
     size_t active_notes = playing_messages.size();
@@ -177,6 +176,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             continue;
         }
         for (auto i = 0; i < buffer.getNumSamples(); ++i) {
+            // trapezoidal estimation
             double spline = 
                 waveTablePtrs[message.first][int(ceil(phases[message.first]))] - 
                 waveTablePtrs[message.first][int(floor(phases[message.first]))];
@@ -228,6 +228,8 @@ void AudioPluginAudioProcessor::addSample(juce::File sample, int index) {
     delete reader;
 
     note_wavetables[index] = audioBuffer;
+
+    wavetableHandler->generate_wavetables(note_wavetables, -1);
 }
 
 //==============================================================================

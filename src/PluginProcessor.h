@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_formats/juce_audio_formats.h>
+#include "WaveTable.h"
 
 // Based on JUCE template project
 
@@ -60,4 +61,5 @@ private:
     std::unordered_map<int, double> phases;
     std::unordered_map<int, juce::AudioSampleBuffer> note_wavetables;
     double sample_rate;
+    WaveTableManager *wavetableHandler;
 };
