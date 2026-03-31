@@ -166,7 +166,10 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto* channelRightData = buffer.getWritePointer (1);
     std::unordered_map<int, const float *> waveTablePtrs;
     for (auto message : playing_messages) {
-        waveTablePtrs[message.first] = wavetableHandler->generate_wavetables(note_wavetables, message.first);
+        const float* wavetable = wavetableHandler->generate_wavetables(note_wavetables, message.first);
+        if (wavetable) {
+            waveTablePtrs[message.first] = wavetable;
+        }
     }
 
     size_t active_notes = playing_messages.size();

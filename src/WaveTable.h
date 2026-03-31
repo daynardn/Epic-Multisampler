@@ -13,6 +13,6 @@ public:
 
     const float * generate_wavetables(std::unordered_map<int, juce::AudioSampleBuffer> imported_wavetables, int index);
 
-    std::unordered_map<int, const float *> generated_wavetables;
+    std::unordered_map<int, juce::AudioSampleBuffer> generated_wavetables;
 private:
 };
