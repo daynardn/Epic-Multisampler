@@ -43,11 +43,14 @@ const float * WaveTableManager::generate_wavetables(std::unordered_map<int, juce
 
             for (auto i = 0; i < sample_number; ++i) {
                 writePtr[i] = writePtr[(int) fmin((double) (i * speedupFac), (double)sample_number)];
+                if ((double) (i * speedupFac) > (double)sample_number) {
+                    writePtr[i] = 0;
+                }
             }
 
             // remove clicks (0 crossings)
             generated_wavetables[sample_index].applyGainRamp(0, (int)fmin(10.0, (double)sample_number), 0.0, 1.0);
-            generated_wavetables[sample_index].applyGainRamp((int)fmax(0.0, (double)sample_number - 10.0), (int)fmin(10.0, (double)sample_number), 0.0, 1.0);
+            generated_wavetables[sample_index].applyGainRamp((int)fmax(0.0, (double)sample_number - 10.0), (int)fmin(10.0, (double)sample_number), 1.0, 0.0);
         }
 
     }

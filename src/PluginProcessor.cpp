@@ -197,7 +197,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             if (wavetableHandler->containsIndex(message.first)) {
                 juce::AudioSampleBuffer wavetable = wavetableHandler->generated_wavetables[message.first];
                 if (phases[message.first] > wavetable.getNumSamples()) {
-                    phases[message.first] = 0;
+                    phases[message.first] -= wavetable.getNumSamples();
                 }
             }
         }
