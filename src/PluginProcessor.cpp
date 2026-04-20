@@ -175,7 +175,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     size_t active_notes = playing_messages.size();
 
     for (auto message : playing_messages) {
-        if (note_wavetables.count(message.first) == 0) {
+        if (!wavetableHandler->containsIndex(message.first)) {
             continue;
         }
         for (auto i = 0; i < buffer.getNumSamples(); ++i) {
@@ -194,8 +194,11 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 spline;
 
             phases[message.first] += 1 * (sample_rate / current_sample_rate);
-            if (phases[message.first] > note_wavetables[message.first].getNumSamples()) {
-                phases[message.first] -= note_wavetables[message.first].getNumSamples();
+            if (wavetableHandler->containsIndex(message.first)) {
+                juce::AudioSampleBuffer wavetable = wavetableHandler->generated_wavetables[message.first];
+                if (phases[message.first] > wavetable.getNumSamples()) {
+                    phases[message.first] = 0;
+                }
             }
         }
     }

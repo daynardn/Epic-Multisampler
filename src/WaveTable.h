@@ -12,6 +12,7 @@ public:
     ~WaveTableManager();
 
     const float * generate_wavetables(std::unordered_map<int, juce::AudioSampleBuffer> imported_wavetables, int index);
+    bool containsIndex(int index);
 
     std::unordered_map<int, juce::AudioSampleBuffer> generated_wavetables;
 private:

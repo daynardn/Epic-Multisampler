@@ -9,6 +9,10 @@ WaveTableManager::~WaveTableManager()
 {
 }
 
+bool WaveTableManager::containsIndex(int index) {
+    return generated_wavetables.count(index) != 0;
+}
+
 const float * WaveTableManager::generate_wavetables(std::unordered_map<int, juce::AudioSampleBuffer> imported_wavetables, int index) {
     if (index != -1) {
         if (generated_wavetables.count(index) > 0) {
@@ -27,7 +31,8 @@ const float * WaveTableManager::generate_wavetables(std::unordered_map<int, juce
         }
         
         if (last_sample_index != -1) {
-            generated_wavetables[sample_index] = imported_wavetables[last_sample_index];
+            generated_wavetables[sample_index].setSize(1, imported_wavetables[last_sample_index].getNumSamples());
+            generated_wavetables[sample_index].copyFrom(0, 0, imported_wavetables[last_sample_index].getReadPointer(0), imported_wavetables[last_sample_index].getNumSamples());
         }
 
     }
