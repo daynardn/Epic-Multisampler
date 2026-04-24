@@ -2,7 +2,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+
 // Based on JUCE template project
+// This project is appropriately licenced as GNU as per JUCE usage guidelines
 
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
@@ -23,6 +25,7 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 }
 
 //==============================================================================
+// This function is from the JUCE template
 const juce::String AudioPluginAudioProcessor::getName() const
 {
     // This should be set but as a failsafe
@@ -33,6 +36,7 @@ const juce::String AudioPluginAudioProcessor::getName() const
     return JucePlugin_Name;
 }
 
+// This function is from the JUCE template
 bool AudioPluginAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
@@ -42,6 +46,7 @@ bool AudioPluginAudioProcessor::acceptsMidi() const
    #endif
 }
 
+// This function is from the JUCE template
 bool AudioPluginAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
@@ -51,6 +56,7 @@ bool AudioPluginAudioProcessor::producesMidi() const
    #endif
 }
 
+// This function is from the JUCE template
 bool AudioPluginAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
@@ -60,39 +66,46 @@ bool AudioPluginAudioProcessor::isMidiEffect() const
    #endif
 }
 
+// This function is from the JUCE template
 double AudioPluginAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
+// This function is from the JUCE template
 int AudioPluginAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
+// This function is from the JUCE template
 int AudioPluginAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
+// This function is from the JUCE template
 void AudioPluginAudioProcessor::setCurrentProgram (int index)
 {
     juce::ignoreUnused (index);
 }
 
+// This function is from the JUCE template
 const juce::String AudioPluginAudioProcessor::getProgramName (int index)
 {
     juce::ignoreUnused (index);
     return {};
 }
 
+// This function is from the JUCE template
 void AudioPluginAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
     juce::ignoreUnused (index, newName);
 }
 
 //==============================================================================
+// This function is from the JUCE template
 void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
@@ -101,12 +114,14 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     current_sample_rate = sampleRate;
 }
 
+// This function is from the JUCE template
 void AudioPluginAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
+// This function is from the JUCE template
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
@@ -131,12 +146,12 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
   #endif
 }
 
+// Student Created
 void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                                               juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused (midiMessages);
 
-    juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -166,6 +181,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto* channelRightData = buffer.getWritePointer (1);
     std::unordered_map<int, const float *> waveTablePtrs;
     for (auto message : playing_messages) {
+        // Call to CSP Create Task Procedure
         const float* wavetable = wavetableHandler->generate_wavetables(note_wavetables, message.first);
         if (wavetable) {
             waveTablePtrs[message.first] = wavetable;
@@ -178,6 +194,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         if (!wavetableHandler->containsIndex(message.first)) {
             continue;
         }
+
         for (auto i = 0; i < buffer.getNumSamples(); ++i) {
             // trapezoidal estimation
             double spline = 
@@ -187,6 +204,12 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             double intpart;
             spline *= modf(phases[message.first], &intpart);
             spline += waveTablePtrs[message.first][int(floor(phases[message.first]))];
+            spline *= message.second.getVelocity() / 127.0;
+
+            // This code is the output of the program, placing samples into the buffer based 
+            // on the inputted wavetables, `waveTablePtrs`
+            // waveTablePtrs is the modified buffer with pitch shifting as per the create task function
+            // `generate_wavetables`
 
             channelLeftData[i] +=
                 spline;
@@ -194,7 +217,7 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 spline;
 
             phases[message.first] += 1 * (sample_rate / current_sample_rate);
-            if (wavetableHandler->containsIndex(message.first)) {
+            if (wavetableHandler->containsIndex(message.first)) { // redundant
                 juce::AudioSampleBuffer wavetable = wavetableHandler->generated_wavetables[message.first];
                 if (phases[message.first] > wavetable.getNumSamples()) {
                     phases[message.first] -= wavetable.getNumSamples();
@@ -204,24 +227,29 @@ void AudioPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 }
 
+// Student created
 const float *AudioPluginAudioProcessor::requestWavetable(int index) {
     return note_wavetables[index].getReadPointer(0);
 }
+// Student created
 int AudioPluginAudioProcessor::requestWavetableLen(int index) {
     return note_wavetables[index].getNumSamples();
 }
 
 //==============================================================================
+// This function is from the juce template
 bool AudioPluginAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
+// This function is from the juce template
 juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 {
     return new AudioPluginAudioProcessorEditor (*this);
 }
 
+// Student Created
 void AudioPluginAudioProcessor::addSample(juce::File sample, int index) {
     juce::AudioFormatManager formatManager;
     formatManager.registerBasicFormats();
@@ -235,10 +263,12 @@ void AudioPluginAudioProcessor::addSample(juce::File sample, int index) {
 
     note_wavetables[index] = audioBuffer;
 
+    // Call to CSP Create Task Procedure
     wavetableHandler->generate_wavetables(note_wavetables, -1);
 }
 
 //==============================================================================
+// This function is from the JUCE template
 void AudioPluginAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
@@ -247,6 +277,7 @@ void AudioPluginAudioProcessor::getStateInformation (juce::MemoryBlock& destData
     juce::ignoreUnused (destData);
 }
 
+// This function is from the JUCE template
 void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
@@ -256,6 +287,7 @@ void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeI
 
 //==============================================================================
 // This creates new instances of the plugin..
+// This function is from the JUCE template
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new AudioPluginAudioProcessor();

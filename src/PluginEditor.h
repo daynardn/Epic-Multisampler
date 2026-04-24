@@ -2,7 +2,9 @@
 
 #include "PluginProcessor.h"
 
+
 // Based on JUCE template project
+// This project is appropriately licenced as GNU as per JUCE usage guidelines
 
 //==============================================================================
 class AudioPluginAudioProcessorEditor final : public juce::AudioProcessorEditor
@@ -16,9 +18,12 @@ public:
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
-    AudioPluginAudioProcessor& processorRef;
+    
+    // From JUCE template
+    AudioPluginAudioProcessor& processorRef; 
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
+
+    // This is the student developed portion of the code
     std::unique_ptr<juce::FileChooser> sampleSelector;
     juce::TextButton loadNewSampleButtonE4 { "Load New Sample E4" };
     juce::PopupMenu noteInput = {};
@@ -29,5 +34,5 @@ private:
     juce::TextButton octaveSetterButton { "Change Octave" };
     juce::TextEditor sampleLabel;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
+    std::string note_text = "Epic Multisampler";
 };
